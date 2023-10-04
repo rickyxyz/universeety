@@ -13,11 +13,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
-POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-DJANGO_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST") or "localhost"
+POSTGRES_USER = os.getenv("POSTGRES_USER") or "root"
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD") or "root"
+POSTGRES_DB = os.getenv("POSTGRES_DB") or "test_db"
+DJANGO_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or "django-insecure"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
