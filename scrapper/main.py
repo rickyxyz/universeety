@@ -1,5 +1,5 @@
-from Scrapper import ScrapperWeb
-from Pipelines import PostgresPipeline
+from scrapper import ScrapperWeb
+from pipeline import PostgresPipeline
 
 if __name__ == "__main__":
     try:
