@@ -4,6 +4,7 @@ services:
     profiles:
       - populate-db
       - backend-only
+      - db-only
     container_name: pg_container
     image: postgres:13.12-bullseye
     restart: always
@@ -15,15 +16,27 @@ services:
       - "5432:5432"
     volumes:
       - "postgres_data:/var/lib/postgresql/data"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"
+        ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   pgadmin:
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+        restart: true
     profiles:
       - backend-only
+      - db-only
     container_name: pgadmin4_container
     image: dpage/pgadmin4:7.7
-    restart: always
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_USER}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
@@ -33,10 +46,13 @@ services:
       - pgadmin_data:/var/lib/pgadmin
 
   scrapper:
+    container_name: scrapper
     profiles:
       - populate-db
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+        restart: true
     build: ./scrapper
     environment:
       POSTGRES_HOST: pg_container
@@ -45,6 +61,24 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - scrapper_data:/scrapper/data_cache
+
+  backend:
+    container_name: backend
+    profiles:
+      - backend-only
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_HOST: pg_container
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
 
 volumes:
   postgres_data:
