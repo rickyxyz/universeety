@@ -1,0 +1,7 @@
+.env
+
+**/__pycache__
+scrapper/scrapper-env/
+backend/backend-env/
+
+scrapper/data_cache/
