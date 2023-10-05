@@ -40,3 +40,9 @@ class UniversityCourseSerializer(serializers.ModelSerializer):
             "course_code",
             "university_code",
         )
+
+
+class SearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = University
+        fields = "__all__"

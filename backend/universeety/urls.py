@@ -5,5 +5,10 @@ from . import views
 
 router = routers.DefaultRouter()
 router.register(r"university", views.UniversityView, "university")
+router.register(r"course", views.CourseView, "course")
+router.register(r"university_course", views.UniversityCourseView, "university_course")
 
-urlpatterns = [path("api/", include(router.urls))]
+urlpatterns = [
+    path("", include(router.urls)),
+    path("search/", views.SearchAPIView.as_view()),
+]
