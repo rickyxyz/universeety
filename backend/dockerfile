@@ -8,6 +8,5 @@ RUN apk update
 RUN apk add --no-cache libpq-dev gcc libc-dev
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
-RUN apk del libpq-dev gcc libc-dev
 
 CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
