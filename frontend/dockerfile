@@ -1,0 +1,9 @@
+FROM node:current-alpine3.18
+
+WORKDIR /frontend
+
+COPY . .
+
+RUN npm install
+
+CMD ["npm", "run", "dev"]
