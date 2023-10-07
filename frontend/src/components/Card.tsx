@@ -1,4 +1,4 @@
-import { University } from "../App";
+import { University } from "../pages/Result";
 
 interface CardParam {
   university: University;
