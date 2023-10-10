@@ -1,4 +1,16 @@
+:root {
+    --color-black: #111111;
+    --color-white: #FFFFFF;
+    --color-gray: #CDCDCD;
+    --color-light-gray: #F3F3F3;
+    --color-primary: #5AC5E6;
+    --color-secondary: #83DEFF;
+    --color-accent: #419CBD;
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
 html, body, #root, #root>div {
+    color: var(--color-black);
     height: 100%
 }
 html, body, div, span {
@@ -8,6 +20,7 @@ html, body, div, span {
     font-size: 100%;
     font: inherit;
     vertical-align: baseline;
+    box-sizing: border-box;
 }
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
