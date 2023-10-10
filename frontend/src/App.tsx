@@ -20,7 +20,6 @@ function App() {
       setIsLanding(false);
       axios.get("/api/search/", { params: { q: query } }).then(async (res) => {
         setResult(res.data);
-        console.log(res.data);
       });
     },
     [query]

@@ -3,8 +3,6 @@ import {
   GoogleMap,
   MarkerF,
   useLoadScript,
-  // MarkerClustererF,
-  // MarkerClusterer,
   Libraries,
   InfoWindowF,
 } from "@react-google-maps/api";
@@ -26,37 +24,37 @@ export default function Map({ universities }: MapPropType) {
   const [selectedMarker, setSelectedMarker] = useState<UniversityType | null>(
     null
   );
+  const [markers, setMarkers] = useState<UniversityType[]>([]);
 
   useEffect(() => {
+    setMarkers([]);
     if (universities.length < 1) return;
     const geocoder = new google.maps.Geocoder();
-    const bounds = new google.maps.LatLngBounds();
     universities.forEach((university) => {
-      geocoder.geocode(
-        { address: `${university.address1} ${university.address2}` },
-        (results, status) => {
-          if (status == google.maps.GeocoderStatus.OK) {
-            console.log(results);
-            console.log(
-              university.name,
-              university.latitude,
-              university.longitude,
-              results && results[0].geometry.location.lat(),
-              results && results[0].geometry.location.lng()
-            );
+      if (university.latitude == 0 && university.longitude == 0) {
+        geocoder.geocode(
+          { address: `${university.address1} ${university.address2}` },
+          (results, status) => {
+            if (status == google.maps.GeocoderStatus.OK && results) {
+              setMarkers((prev) => [
+                ...prev,
+                {
+                  ...university,
+                  latitude: results[0].geometry.location.lat(),
+                  longitude: results[0].geometry.location.lng(),
+                },
+              ]);
+            }
           }
-        }
-      );
-
-      bounds.extend(
-        new google.maps.LatLng(university.latitude, university.longitude)
-      );
+        );
+      } else {
+        setMarkers((prev) => [...prev, university]);
+      }
     });
-    mapRef.current?.panToBounds(bounds);
   }, [universities]);
 
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
 
@@ -91,13 +89,13 @@ export default function Map({ universities }: MapPropType) {
       onLoad={onLoad}
       options={options}
     >
-      {universities &&
-        universities.map((university, index) => {
+      {markers &&
+        markers.map((marker, index) => {
           return (
             <MarkerF
               key={index}
-              position={{ lat: university.latitude, lng: university.longitude }}
-              onClick={() => setSelectedMarker(university)}
+              position={{ lat: marker.latitude, lng: marker.longitude }}
+              onClick={() => setSelectedMarker(marker)}
             />
           );
         })}
@@ -124,7 +122,6 @@ export default function Map({ universities }: MapPropType) {
           </>
         )}
       </MarkerClusterer> */}
-      {/* <CircleF center={center} radius={100} /> */}
     </GoogleMap>
   ) : (
     <>Loading</>
