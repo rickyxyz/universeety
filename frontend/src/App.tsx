@@ -2,7 +2,7 @@ import axios from "axios";
 import "./app.css";
 import { useCallback, useState } from "react";
 import { UniversityType } from "./Types";
-import { Search } from "react-feather";
+import { Search, X } from "react-feather";
 import Map from "./Map";
 
 function App() {
@@ -48,7 +48,14 @@ function App() {
             id="query"
             onChange={handleInputChange}
             className="search__input"
+            value={query}
           />
+          {query.length > 0 && (
+            <span className="search__reset" onClick={() => setQuery("")}>
+              <X size={"1.3rem"} strokeWidth={"3"} />
+            </span>
+          )}
+          <span className="search__separator"></span>
           <button type="submit" className="search__button">
             <Search size={"1.3rem"} strokeWidth={"3"} />
           </button>
