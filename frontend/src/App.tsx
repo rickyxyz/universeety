@@ -2,11 +2,12 @@ import axios from "axios";
 import "./app.css";
 import { useCallback, useState } from "react";
 import { UniversityType } from "./Types";
-import { Search, X } from "react-feather";
+import { Search, X, HelpCircle } from "react-feather";
 import Map from "./Map";
+import Badge from "./components/Badge";
 
 function App() {
-  const [isLanding, setIsLanding] = useState<boolean>(false);
+  const [isLanding, setIsLanding] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
   const [result, setResult] = useState<UniversityType[]>([]);
 
@@ -39,9 +40,13 @@ function App() {
           Explore <span>Universities</span> In Indonesia
         </h1>
         <h3 className={`search__subtitle ${isLanding ? "" : "isHidden"}`}>
-          Enter a <span>name, location, or course</span> to begin
+          Enter a <span>name, location, or study program</span> to begin
         </h3>
-        <form className="search" onSubmit={handleSubmit} method="GET">
+        <form
+          className={`search ${isLanding ? "" : "search-top"}`}
+          onSubmit={handleSubmit}
+          method="GET"
+        >
           <input
             type="text"
             name="query"
@@ -60,6 +65,25 @@ function App() {
             <Search size={"1.3rem"} strokeWidth={"3"} />
           </button>
         </form>
+        {!isLanding && (
+          <div className="search__controls">
+            <Badge
+              content={
+                <>
+                  {result.length} result found{" "}
+                  <HelpCircle size={"1.3rem"} strokeWidth={"2"} />
+                </>
+              }
+              popup_content={
+                <ul>
+                  <li>{result.length} university found</li>
+                  <li>{result.length} course found</li>
+                  <li>{result.length} location found</li>
+                </ul>
+              }
+            />
+          </div>
+        )}
       </div>
       <Map universities={result} />
     </div>
