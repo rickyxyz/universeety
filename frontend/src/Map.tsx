@@ -7,6 +7,7 @@ import {
   InfoWindowF,
 } from "@react-google-maps/api";
 import { UniversityType } from "./Types";
+import { InfoCard } from "./components/InfoCard";
 
 const containerStyle = {
   width: "100%",
@@ -110,7 +111,7 @@ export default function Map({ universities }: MapPropType) {
           }}
           onCloseClick={() => setSelectedMarker(null)}
         >
-          <div>{selectedMarker.name}</div>
+          <InfoCard university={selectedMarker} />
         </InfoWindowF>
       )}
       {/* <MarkerClusterer>
