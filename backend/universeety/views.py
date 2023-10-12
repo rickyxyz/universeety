@@ -38,5 +38,7 @@ class SearchAPIView(views.APIView):
             | Q(universitycourse__course_code__name__icontains=query)
         ).distinct()
 
-        serializer = SearchSerializer(universities, many=True)
+        serializer = SearchSerializer(
+            universities, many=True, context={"request": request}
+        )
         return Response(serializer.data)

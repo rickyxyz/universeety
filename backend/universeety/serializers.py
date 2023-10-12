@@ -42,7 +42,34 @@ class UniversityCourseSerializer(serializers.ModelSerializer):
         )
 
 
+import logging
+
+# Add this line at the top of your Django view or serializer
+logger = logging.getLogger("app_api")
+
+
 class SearchSerializer(serializers.ModelSerializer):
+    match_type = serializers.SerializerMethodField()
+
     class Meta:
         model = University
         fields = "__all__"
+
+    def get_match_type(self, obj):
+        request = self.context.get("request")
+        if request is not None:
+            query = request.GET.get("q", "").lower()
+            if obj.name.lower().find(query) != -1:
+                return "name"
+            elif (
+                obj.address1.lower().find(query) != -1
+                or obj.address2.lower().find(query) != -1
+            ):
+                return "address"
+            elif obj.universitycourse_set.filter(
+                course_code__name__icontains=query
+            ).exists():
+                return "course"
+            else:
+                return ""
+        return ""
