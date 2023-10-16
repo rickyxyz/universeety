@@ -38,7 +38,33 @@ class SearchAPIView(views.APIView):
             | Q(universitycourse__course_code__name__icontains=query)
         ).distinct()
 
+        name_match_count = 0
+        address_match_count = 0
+        course_match_count = 0
+        universities_with_extra_field = []
+
+        for university in universities:
+            if university.name.lower().find(query.lower()) != -1:
+                name_match_count += 1
+            elif (
+                university.address1.lower().find(query.lower()) != -1
+                or university.address2.lower().find(query.lower()) != -1
+            ):
+                address_match_count += 1
+            else:
+                course_match_count += 1
+
+            universities_with_extra_field.append(university)
+
         serializer = SearchSerializer(
-            universities, many=True, context={"request": request}
+            universities_with_extra_field, many=True, context={"request": request}
         )
-        return Response(serializer.data)
+
+        response_data = {
+            "name_match": name_match_count,
+            "address_match": address_match_count,
+            "course_match": course_match_count,
+            "universities": serializer.data,
+        }
+
+        return Response(response_data)

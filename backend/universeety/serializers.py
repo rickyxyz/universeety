@@ -42,12 +42,6 @@ class UniversityCourseSerializer(serializers.ModelSerializer):
         )
 
 
-import logging
-
-# Add this line at the top of your Django view or serializer
-logger = logging.getLogger("app_api")
-
-
 class SearchSerializer(serializers.ModelSerializer):
     match_type = serializers.SerializerMethodField()
 
