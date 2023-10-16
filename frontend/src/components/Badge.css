@@ -18,11 +18,12 @@
 }
 
 .badge_popup {
+    color: var(--color-black);
     visibility: hidden;
     opacity: 0%;
     transition: visibility 0.1s, opacity 0.3s linear;
     padding: 8px;
-    width: 120%;
+    width: max-content;
     border-radius: 1rem;
     background-color: var(--color-light-gray);
     position: absolute;
@@ -34,7 +35,7 @@
 
 .badge_popup > ol, li {
     list-style: disc;
-    margin-left: 20px;
+    margin: 4px 0 2px 20px;
 }
 
 .badge_popup::before {
@@ -46,4 +47,11 @@
     height: 10px;
     width: 10px;
     background-color: var(--color-light-gray);
+}
+
+.badge-inactive {
+    opacity: 0.9;
+    background-color: var(--color-gray);
+    box-shadow: none;
+    color: var(--color-light-gray);
 }

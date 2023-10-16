@@ -11,4 +11,11 @@ export interface UniversityType {
   address2: string;
   latitude: number;
   longitude: number;
+  match_type: keyof FilterType;
 }
+
+export type FilterType = {
+  name: boolean;
+  address: boolean;
+  course: boolean;
+};

@@ -6,6 +6,13 @@ interface InfoCardPropType {
   className?: string;
 }
 
+function addHttpsToURL(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url.trim();
+  }
+  return `https://${url.trim()}`;
+}
+
 export function InfoCard({ university, className }: InfoCardPropType) {
   return (
     <div className={className}>
@@ -17,11 +24,11 @@ export function InfoCard({ university, className }: InfoCardPropType) {
           </tr>
           <tr>
             <th>Abbreviation</th>
-            <td>{university.abbreviation}</td>
+            <td>{university.abbreviation || "-"}</td>
           </tr>
           <tr>
             <th>Accreditation</th>
-            <td>{university.accreditation}</td>
+            <td>{university.accreditation || "-"}</td>
           </tr>
           <tr>
             <th>Address</th>
@@ -38,13 +45,13 @@ export function InfoCard({ university, className }: InfoCardPropType) {
           </tr>
           <tr>
             <th>Phone Number</th>
-            <td>{university.phone}</td>
+            <td>{university.phone || "-"}</td>
           </tr>
           <tr>
             <th>Website</th>
             <td>
               {university.website && (
-                <a href={university.website} target="_blank">
+                <a href={addHttpsToURL(university.website)} target="_blank">
                   {university.website}
                 </a>
               )}

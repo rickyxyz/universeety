@@ -9,6 +9,8 @@ export interface BadgePropType {
   popup_style?: CSSProperties;
   className?: string;
   popup_className?: string;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  isActive?: boolean;
 }
 
 export default function Badge({
@@ -19,9 +21,15 @@ export default function Badge({
   popup_style,
   className,
   popup_className,
+  isActive = true,
+  onClick,
 }: BadgePropType) {
   return (
-    <div className={`badge ${className}`} style={style}>
+    <div
+      className={`badge ${className} ${!isActive ? "badge-inactive" : ""}`}
+      style={style}
+      onClick={onClick}
+    >
       {children ? children : content}
       {popup_content && (
         <div className={`badge_popup ${popup_className}`} style={popup_style}>

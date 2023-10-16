@@ -1,15 +1,47 @@
 import axios from "axios";
 import "./app.css";
 import { useCallback, useState } from "react";
-import { UniversityType } from "./Types";
-import { Search, X, HelpCircle } from "react-feather";
+import { FilterType, UniversityType } from "./Types";
+import { FaXmark } from "react-icons/fa6";
+import {
+  FaSearch,
+  FaBook,
+  FaUniversity,
+  FaMapMarkedAlt,
+  FaBars,
+} from "react-icons/fa";
 import Map from "./Map";
 import Badge from "./components/Badge";
 
+type APISearchResponse = {
+  name_match: number;
+  address_match: number;
+  course_match: number;
+  universities: UniversityType[];
+};
+
 function App() {
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [isLanding, setIsLanding] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
-  const [result, setResult] = useState<UniversityType[]>([]);
+  const [results, setResults] = useState<APISearchResponse>({
+    name_match: 0,
+    address_match: 0,
+    course_match: 0,
+    universities: [],
+  });
+  const [filterShow, setFilterShow] = useState<FilterType>({
+    name: true,
+    address: true,
+    course: true,
+  });
+
+  const toggleFilter = useCallback((filter: keyof FilterType) => {
+    setFilterShow((prev) => ({
+      ...prev,
+      [filter]: !prev[filter],
+    }));
+  }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
@@ -18,9 +50,10 @@ function App() {
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      if (query.length < 1) return;
       setIsLanding(false);
       axios.get("/api/search/", { params: { q: query } }).then(async (res) => {
-        setResult(res.data);
+        setResults(res.data);
       });
     },
     [query]
@@ -47,6 +80,9 @@ function App() {
           onSubmit={handleSubmit}
           method="GET"
         >
+          <span className="search__menu">
+            <FaBars />
+          </span>
           <input
             type="text"
             name="query"
@@ -56,36 +92,75 @@ function App() {
             value={query}
           />
           {query.length > 0 && (
-            <span className="search__reset" onClick={() => setQuery("")}>
-              <X size={"1.3rem"} strokeWidth={"3"} />
+            <span
+              className="search__reset"
+              onClick={() => {
+                setQuery("");
+                setResults({
+                  name_match: 0,
+                  address_match: 0,
+                  course_match: 0,
+                  universities: [],
+                });
+              }}
+            >
+              <FaXmark size={"1.3rem"} strokeWidth={"3"} />
             </span>
           )}
           <span className="search__separator"></span>
           <button type="submit" className="search__button">
-            <Search size={"1.3rem"} strokeWidth={"3"} />
+            <FaSearch size={"1.3rem"} strokeWidth={"3"} />
           </button>
         </form>
         {!isLanding && (
           <div className="search__controls">
             <Badge
+              isActive={filterShow.name}
               content={
                 <>
-                  {result.length} result found{" "}
-                  <HelpCircle size={"1.3rem"} strokeWidth={"2"} />
+                  {results.name_match} universities{" "}
+                  <FaUniversity size={"1.2rem"} strokeWidth={"2"} />
                 </>
               }
               popup_content={
-                <ul>
-                  <li>{result.length} university found</li>
-                  <li>{result.length} course found</li>
-                  <li>{result.length} location found</li>
-                </ul>
+                filterShow.name ? "click to hide name" : "click to show name"
               }
+              onClick={() => toggleFilter("name")}
+            />
+            <Badge
+              isActive={filterShow.address}
+              content={
+                <>
+                  {results.address_match} addresses
+                  <FaMapMarkedAlt size={"1.2rem"} strokeWidth={"2"} />
+                </>
+              }
+              popup_content={
+                filterShow.address
+                  ? "click to hide address"
+                  : "click to show address"
+              }
+              onClick={() => toggleFilter("address")}
+            />
+            <Badge
+              isActive={filterShow.course}
+              content={
+                <>
+                  {results.course_match} courses{" "}
+                  <FaBook size={"1.2rem"} strokeWidth={"2"} />
+                </>
+              }
+              popup_content={
+                filterShow.course
+                  ? "click to hide course"
+                  : "click to show course"
+              }
+              onClick={() => toggleFilter("course")}
             />
           </div>
         )}
       </div>
-      <Map universities={result} />
+      <Map universities={results.universities} filters={filterShow} />
     </div>
   );
 }

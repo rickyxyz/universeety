@@ -5,8 +5,10 @@ import {
   useLoadScript,
   Libraries,
   InfoWindowF,
+  MarkerClustererF,
+  MarkerClusterer,
 } from "@react-google-maps/api";
-import { UniversityType } from "./Types";
+import { FilterType, UniversityType } from "./Types";
 import { InfoCard } from "./components/InfoCard";
 
 const containerStyle = {
@@ -18,48 +20,39 @@ const libraries: Libraries = ["places"];
 
 interface MapPropType {
   universities: UniversityType[];
+  filters: FilterType;
 }
 
-export default function Map({ universities }: MapPropType) {
-  const mapRef = useRef<google.maps.Map | null>(null);
+const icons = {
+  name: "/building.svg",
+  address: "/location.svg",
+  course: "/book.svg",
+};
+
+export default function Map({ universities, filters }: MapPropType) {
+  const [markers, setMarkers] = useState<UniversityType[]>([]);
+  const mapRef = useRef<google.maps.Map | null>();
   const [selectedMarker, setSelectedMarker] = useState<UniversityType | null>(
     null
   );
-  const [markers, setMarkers] = useState<UniversityType[]>([]);
 
   useEffect(() => {
-    setMarkers([]);
-    if (universities.length < 1) return;
-    const geocoder = new google.maps.Geocoder();
-    universities.forEach((university) => {
-      if (university.latitude == 0 && university.longitude == 0) {
-        geocoder.geocode(
-          { address: `${university.address1} ${university.address2}` },
-          (results, status) => {
-            if (status == google.maps.GeocoderStatus.OK && results) {
-              setMarkers((prev) => [
-                ...prev,
-                {
-                  ...university,
-                  latitude: results[0].geometry.location.lat(),
-                  longitude: results[0].geometry.location.lng(),
-                },
-              ]);
-            }
-          }
+    let filteredUniversities: UniversityType[] = universities;
+    for (const type in filters) {
+      if (!filters[type as keyof FilterType]) {
+        filteredUniversities = filteredUniversities.filter(
+          (university) => university.match_type !== type
         );
-      } else {
-        setMarkers((prev) => [...prev, university]);
       }
-    });
-  }, [universities]);
+    }
+    setMarkers(filteredUniversities);
+  }, [filters, universities]);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const center = useMemo<google.maps.LatLngLiteral>(
     () => ({
       lat: -6.1754,
@@ -68,7 +61,6 @@ export default function Map({ universities }: MapPropType) {
     []
   );
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const options = useMemo<google.maps.MapOptions>(
     () => ({
       mapId: "c170107c800780e3",
@@ -89,40 +81,40 @@ export default function Map({ universities }: MapPropType) {
       zoom={10}
       onLoad={onLoad}
       options={options}
+      onClick={() => setSelectedMarker(null)}
     >
-      {markers &&
-        markers.map((marker, index) => {
-          return (
-            <MarkerF
-              key={index}
-              position={{ lat: marker.latitude, lng: marker.longitude }}
-              onClick={() => setSelectedMarker(marker)}
-            />
-          );
-        })}
-      {selectedMarker && (
-        <InfoWindowF
-          options={{
-            pixelOffset: new window.google.maps.Size(0, -40),
-          }}
-          position={{
-            lat: selectedMarker.latitude,
-            lng: selectedMarker.longitude,
-          }}
-          onCloseClick={() => setSelectedMarker(null)}
-        >
-          <InfoCard university={selectedMarker} />
-        </InfoWindowF>
-      )}
-      {/* <MarkerClusterer>
-        {(clusterer) => (
-          <>
-            {markers.map((marker, index) => (
-              <MarkerF key={index} position={marker} clusterer={clusterer} />
-            ))}
-          </>
+      {/* <MarkerClustererF>
+        {(clusterer) => ( */}
+      <>
+        {markers.map((university, index) => (
+          <MarkerF
+            // clusterer={clusterer}
+            key={index}
+            position={{
+              lat: university.latitude,
+              lng: university.longitude,
+            }}
+            icon={icons[university.match_type]}
+            onClick={() => setSelectedMarker(university)}
+          />
+        ))}
+        {selectedMarker && (
+          <InfoWindowF
+            options={{
+              pixelOffset: new window.google.maps.Size(0, -20),
+            }}
+            position={{
+              lat: selectedMarker.latitude,
+              lng: selectedMarker.longitude,
+            }}
+            onCloseClick={() => setSelectedMarker(null)}
+          >
+            <InfoCard university={selectedMarker} />
+          </InfoWindowF>
         )}
-      </MarkerClusterer> */}
+      </>
+      {/* //   )}
+      // </MarkerClustererF> */}
     </GoogleMap>
   ) : (
     <>Loading</>
