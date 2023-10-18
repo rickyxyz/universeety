@@ -10,10 +10,11 @@ import {
 } from "@react-google-maps/api";
 import { FilterType, UniversityType } from "./Types";
 import { InfoCard } from "./components/InfoCard";
+import { provinces } from "./Data";
 
 const containerStyle = {
   width: "100%",
-  height: "100%",
+  height: "100vh",
 };
 
 const libraries: Libraries = ["places"];
@@ -21,6 +22,8 @@ const libraries: Libraries = ["places"];
 interface MapPropType {
   universities: UniversityType[];
   filters: FilterType;
+  viewMode: string;
+  onClick?: () => void;
 }
 
 const icons = {
@@ -29,7 +32,12 @@ const icons = {
   course: "/book.svg",
 };
 
-export default function Map({ universities, filters }: MapPropType) {
+export default function Map({
+  universities,
+  filters,
+  viewMode,
+  onClick,
+}: MapPropType) {
   const [markers, setMarkers] = useState<UniversityType[]>([]);
   const mapRef = useRef<google.maps.Map | null>();
   const [selectedMarker, setSelectedMarker] = useState<UniversityType | null>(
@@ -70,6 +78,34 @@ export default function Map({ universities, filters }: MapPropType) {
     []
   );
 
+  const featureStyle = useMemo(() => {
+    const featureStyleOptions: google.maps.FeatureStyleOptions = {
+      strokeColor: "#810FCB",
+      strokeOpacity: 1.0,
+      strokeWeight: 3.0,
+      fillColor: "#810FCB",
+      fillOpacity: 0.5,
+    };
+    if (viewMode === "count") {
+      return featureStyleOptions;
+    }
+    return null;
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current) return;
+    const map = mapRef.current;
+    const featureLayer = map.getFeatureLayer(
+      window.google.maps.FeatureType.ADMINISTRATIVE_AREA_LEVEL_1
+    );
+    const placeArray = Object.values(provinces);
+    featureLayer.style = (options: { feature: { placeId: string } }) => {
+      if (placeArray.includes(options.feature.placeId)) {
+        return featureStyle;
+      }
+    };
+  }, [featureStyle, isLoaded, viewMode]);
+
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     mapRef.current = map;
   }, []);
@@ -81,7 +117,12 @@ export default function Map({ universities, filters }: MapPropType) {
       zoom={10}
       onLoad={onLoad}
       options={options}
-      onClick={() => setSelectedMarker(null)}
+      onClick={() => {
+        setSelectedMarker(null);
+        if (onClick) {
+          onClick();
+        }
+      }}
     >
       {/* <MarkerClustererF>
         {(clusterer) => ( */}

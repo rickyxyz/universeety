@@ -8,7 +8,7 @@ import {
   FaBook,
   FaUniversity,
   FaMapMarkedAlt,
-  FaBars,
+  FaEye,
 } from "react-icons/fa";
 import Map from "./Map";
 import Badge from "./components/Badge";
@@ -21,7 +21,8 @@ type APISearchResponse = {
 };
 
 function App() {
-  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<string>("default");
+  const [showViewControl, setShowViewControl] = useState<boolean>(false);
   const [isLanding, setIsLanding] = useState<boolean>(true);
   const [query, setQuery] = useState<string>("");
   const [results, setResults] = useState<APISearchResponse>({
@@ -80,9 +81,6 @@ function App() {
           onSubmit={handleSubmit}
           method="GET"
         >
-          <span className="search__menu">
-            <FaBars />
-          </span>
           <input
             type="text"
             name="query"
@@ -159,8 +157,54 @@ function App() {
             />
           </div>
         )}
+        {!isLanding && (
+          <div className="layer_control">
+            <div
+              className={`layer_control__current ${
+                viewMode != "count"
+                  ? "layer_control__bg-default"
+                  : "layer_control__bg-count"
+              }`}
+              onClick={() => {
+                setShowViewControl((prev) => !prev);
+              }}
+            >
+              <span>
+                <FaEye />
+                {viewMode != "count" ? "default" : "count"}
+              </span>
+            </div>
+            {showViewControl && (
+              <div
+                className={`layer_control__other ${
+                  viewMode == "count"
+                    ? "layer_control__bg-default"
+                    : "layer_control__bg-count"
+                }`}
+                onClick={() => {
+                  setShowViewControl(false);
+                  setViewMode((prev) =>
+                    prev == "count" ? "default" : "count"
+                  );
+                }}
+              >
+                <span>
+                  <FaEye />
+                  {viewMode == "count" ? "default" : "count"}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <Map universities={results.universities} filters={filterShow} />
+      <Map
+        universities={results.universities}
+        filters={filterShow}
+        onClick={() => {
+          setShowViewControl(false);
+        }}
+        viewMode={viewMode}
+      />
     </div>
   );
 }
