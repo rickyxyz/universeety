@@ -9,10 +9,11 @@ class University(models.Model):
     program_count = models.IntegerField()
     website = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
-    address1 = models.CharField(max_length=255)
-    address2 = models.CharField(max_length=255)
+    address = models.CharField(max_length=600)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    province = models.CharField(max_length=255)
+    place_id = models.CharField(max_length=255)
 
     class Meta:
         managed = False

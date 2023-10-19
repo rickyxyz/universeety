@@ -14,10 +14,11 @@ class UniversitySerializer(serializers.ModelSerializer):
             "program_count",
             "website",
             "phone",
-            "address1",
-            "address2",
+            "address",
             "latitude",
             "longitude",
+            "province",
+            "place_id",
         )
 
 
@@ -55,10 +56,7 @@ class SearchSerializer(serializers.ModelSerializer):
             query = request.GET.get("q", "").lower()
             if obj.name.lower().find(query) != -1:
                 return "name"
-            elif (
-                obj.address1.lower().find(query) != -1
-                or obj.address2.lower().find(query) != -1
-            ):
+            elif obj.address.lower().find(query) != -1:
                 return "address"
             elif obj.universitycourse_set.filter(
                 course_code__name__icontains=query

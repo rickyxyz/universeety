@@ -33,8 +33,7 @@ class SearchAPIView(views.APIView):
 
         universities = University.objects.filter(
             Q(name__icontains=query)
-            | Q(address1__icontains=query)
-            | Q(address2__icontains=query)
+            | Q(address__icontains=query)
             | Q(universitycourse__course_code__name__icontains=query)
         ).distinct()
 
@@ -46,10 +45,7 @@ class SearchAPIView(views.APIView):
         for university in universities:
             if university.name.lower().find(query.lower()) != -1:
                 name_match_count += 1
-            elif (
-                university.address1.lower().find(query.lower()) != -1
-                or university.address2.lower().find(query.lower()) != -1
-            ):
+            elif university.address.lower().find(query.lower()) != -1:
                 address_match_count += 1
             else:
                 course_match_count += 1
