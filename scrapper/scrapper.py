@@ -25,7 +25,8 @@ class ScrapperWeb(object):
         self.course_links = []
         self.courses = []
 
-    def start(self, start_page=1, max_page=5):
+    # max 527
+    def start(self, start_page=0, max_page=527):
         print("scraping started")
         self._scrape_university(start_page, max_page)
         self._scrape_course()
@@ -34,10 +35,11 @@ class ScrapperWeb(object):
         api = "https://api-frontend.kemdikbud.go.id/v2/search_pt"
 
         for page_number in range(start_page, max_page + 1):
-            page_url = f"https://pddikti.kemdikbud.go.id/search_pt/-/-/-/-/A/-/-/{page_number}/"
+            page_url = f"https://pddikti.kemdikbud.go.id/search_pt/-/-/-/-/-/-/-/{page_number}/"
+            print(f"scrapping {page_url}")
 
             self.driver.get(page_url)
-            request = self.driver.wait_for_request(api, timeout=30)
+            request = self.driver.wait_for_request(api, timeout=3600)
             data = decode(
                 request.response.body,
                 request.response.headers.get("Content-Encoding", "identity"),
@@ -79,9 +81,10 @@ class ScrapperWeb(object):
             course_data = []
             url = f"https://pddikti.kemdikbud.go.id/data_pt/{university_hash}"
             api = f"https://api-frontend.kemdikbud.go.id/v2/detail_pt_prodi/{university_hash}"
+            print(f"scraping {url}")
 
             self.driver.get(url)
-            request = self.driver.wait_for_request(api, timeout=30)
+            request = self.driver.wait_for_request(api, timeout=3600)
             data = decode(
                 request.response.body,
                 request.response.headers.get("Content-Encoding", "identity"),
