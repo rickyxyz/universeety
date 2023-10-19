@@ -39,7 +39,7 @@ export function InfoCard({ university, className }: InfoCardPropType) {
                 )}`}
                 target="_new"
               >
-                {university.address1} {university.address2}
+                {university.address}
               </a>
             </td>
           </tr>

@@ -6,6 +6,7 @@
     --color-primary: #5AC5E6;
     --color-secondary: #83DEFF;
     --color-accent: #419CBD;
+    --color-test: hsl(1, 1, 1);
     font-family: 'Montserrat', Arial, Helvetica, sans-serif;
     font-size: 14px;
 }

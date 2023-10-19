@@ -1,3 +1,5 @@
+import { ProvinceName } from "./mappings";
+
 export interface UniversityType {
   id: number;
   code: string;
@@ -7,11 +9,12 @@ export interface UniversityType {
   program_count: number;
   website: string;
   phone: string;
-  address1: string;
-  address2: string;
+  address: string;
   latitude: number;
   longitude: number;
   match_type: keyof FilterType;
+  province: ProvinceName;
+  place_id: string;
 }
 
 export type FilterType = {
