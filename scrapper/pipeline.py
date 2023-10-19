@@ -1,10 +1,12 @@
 import csv, os
 import psycopg2
+import googlemaps
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST") or "localhost"
 POSTGRES_USER = os.getenv("POSTGRES_USER") or "root"
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD") or "root"
 POSTGRES_DB = os.getenv("POSTGRES_DB") or "test_db"
+GMAPS_KEY = os.getenv("GMAPS_KEY")
 
 
 class PostgresPipeline(object):
@@ -17,6 +19,7 @@ class PostgresPipeline(object):
             port="5432",
         )
         self.curr = self.connection.cursor()
+        self.gmaps = googlemaps.Client(key=GMAPS_KEY)
 
     def store_data(self):
         print("storing data")
@@ -42,10 +45,11 @@ class PostgresPipeline(object):
                     program_count INTEGER NOT NULL,
                     website VARCHAR(255) NOT NULL,
                     phone VARCHAR(255) NOT NULL,
-                    address1 VARCHAR(255) NOT NULL,
-                    address2 VARCHAR(255) NOT NULL,
+                    address VARCHAR(600) NOT NULL,
                     latitude FLOAT4,
-                    longitude FLOAT4
+                    longitude FLOAT4,
+                    province VARCHAR(255) NOT NULL,
+                    place_id VARCHAR(255) NOT NULL
                 );
             """
         )
@@ -98,39 +102,39 @@ class PostgresPipeline(object):
             program_count,
             website,
             phone,
-            address1,
-            address2,
+            address,
             latitude,
-            longitude
+            longitude,
+            province,
+            place_id
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT DO NOTHING;
         """
+
         universities = []
-        for source in os.listdir("./data_cache/university"):
-            with open(f"./data_cache/university/{source}") as file:
-                csv_data = csv.DictReader(file)
-                for row in csv_data:
-                    universities.append(
-                        (
-                            row["university_code"] or "",
-                            row["name"] or "",
-                            row["abbreviation"] or "",
-                            row["accreditation"] or "",
-                            row["program_count"],
-                            row["website"] or "",
-                            row["phone"] or "",
-                            row["address1"] or "",
-                            row["address2"] or "",
-                            row["latitude"] or 0.0,
-                            row["longitude"] or 0.0,
-                        )
+        with open("./data_cache/transformed_university.csv") as file:
+            csv_data = csv.DictReader(file)
+            for row in csv_data:
+                universities.append(
+                    (
+                        row.get("university_code", ""),
+                        row.get("name", ""),
+                        row.get("abbreviation", ""),
+                        row.get("accreditation", ""),
+                        row.get("program_count", 0),
+                        row.get("website", 0),
+                        row.get("phone", ""),
+                        row.get("address", ""),
+                        row.get("latitude", None),
+                        row.get("longitude", None),
+                        row.get("province", ""),
+                        row.get("place_id", ""),
                     )
-        try:
-            self.curr.executemany(insert_query, universities)
-            self.connection.commit()
-        except BaseException as e:
-            print(e)
+                )
+
+        self.curr.executemany(insert_query, universities)
+        self.connection.commit()
 
     def _store_course(self):
         courses = []
@@ -177,12 +181,9 @@ class PostgresPipeline(object):
                         )
                     )
 
-        try:
-            self.curr.executemany(insert_query_course, courses)
-            self.curr.executemany(insert_query_university_course, university_course)
-            self.connection.commit()
-        except BaseException as e:
-            print(e)
+        self.curr.executemany(insert_query_course, courses)
+        self.curr.executemany(insert_query_university_course, university_course)
+        self.connection.commit()
 
     def close(self):
         self.curr.close()
