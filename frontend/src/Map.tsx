@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   GoogleMap,
-  MarkerF,
   useLoadScript,
   Libraries,
   InfoWindowF,
-  MarkerClustererF,
 } from "@react-google-maps/api";
 import { FilterType, UniversityType } from "./Types";
 import { InfoCard } from "./components/InfoCard";
@@ -47,6 +45,34 @@ function heatMapColorforValue(value: number) {
   return hslToHex(h, s, l);
 }
 
+function featureStyle(count: number, clicked = false, hovered = false) {
+  const featureStyleOptions: google.maps.FeatureStyleOptions = {
+    strokeColor: clicked || hovered ? heatMapColorforValue(count) : "#0F0F0F",
+    strokeOpacity: 0.9,
+    strokeWeight: clicked ? 1.5 : 0.5,
+    fillColor: heatMapColorforValue(count),
+    fillOpacity: clicked || hovered ? 0.6 : 0.4,
+  };
+  return featureStyleOptions;
+}
+
+const mapContainerStyle = {
+  width: "100%",
+  height: "100vh",
+};
+
+const center = {
+  lat: -6.1754,
+  lng: 106.8272,
+};
+
+const options = {
+  mapId: "c170107c800780e3",
+  disableDefaultUI: true,
+  clickableIcons: false,
+  disableDoubleClickZoom: true,
+};
+
 export default function Map({
   universities,
   filters,
@@ -58,20 +84,20 @@ export default function Map({
     libraries: libraries,
   });
   const mapRef = useRef<google.maps.Map | null>();
+  const markerRef = useRef<google.maps.Marker[]>([]);
   const markers = useMemo(() => {
-    let filteredUniversities: UniversityType[] = universities;
-    for (const type in filters) {
-      if (!filters[type as keyof FilterType]) {
-        filteredUniversities = filteredUniversities.filter(
-          (university) => university.match_type !== type
-        );
-      }
-    }
-    return filteredUniversities;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    const visibleFilter = Object.keys(filters).filter((key) => filters[key]);
+    return universities.filter((university) =>
+      visibleFilter.includes(university.match_type)
+    );
   }, [filters, universities]);
   const [selectedMarker, setSelectedMarker] = useState<UniversityType | null>(
     null
   );
+  const [clickedFeatureId, setClickedFeatureId] = useState("");
+  const [hoveredFeatureId, setHoveredFeatureId] = useState("");
   const counters = useMemo(() => {
     const counter: CounterType = {
       values: Object.keys(provinces).reduce(
@@ -98,20 +124,11 @@ export default function Map({
     return counter;
   }, [isLoaded, markers]);
 
-  const featureStyle = useCallback(
-    (count: number) => {
-      if (viewMode !== "count") return null;
-      const featureStyleOptions: google.maps.FeatureStyleOptions = {
-        strokeColor: "#0A0A0A",
-        strokeOpacity: 1.0,
-        strokeWeight: 1.0,
-        fillColor: heatMapColorforValue(count),
-        fillOpacity: 0.6,
-      };
-      return featureStyleOptions;
-    },
-    [viewMode]
-  );
+  const clearMarkers = useCallback(() => {
+    while (markerRef.current.length) {
+      markerRef.current.pop()?.setMap(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoaded || !mapRef.current) return;
@@ -120,86 +137,124 @@ export default function Map({
     const featureLayer = map.getFeatureLayer(
       window.google.maps.FeatureType.ADMINISTRATIVE_AREA_LEVEL_1
     );
-    const placeArray = Object.values(provinces);
+
+    if (viewMode !== "count") {
+      featureLayer.style = null;
+      return;
+    }
+
+    clearMarkers();
+    const provinceId = Object.values(provinces);
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     featureLayer.style = (options: { feature: { placeId: string } }) => {
       const placeId = options.feature.placeId;
-      if (placeArray.includes(placeId)) {
+      if (provinceId.includes(placeId)) {
         const provinceName = getKeyByValue(provinces, placeId) as ProvinceName;
         const count = counters.values[provinceName];
         return featureStyle(
-          (count - counters.min) / (counters.max - counters.min)
+          (count - counters.min) / (counters.max - counters.min),
+          clickedFeatureId === placeId,
+          hoveredFeatureId === placeId
         );
       }
     };
-  }, [counters, featureStyle, isLoaded, markers, viewMode]);
+
+    featureLayer.addListener("click", (e: google.maps.FeatureMouseEvent) => {
+      setClickedFeatureId((prev) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        return prev == e.features[0].i ? "" : e.features[0].i;
+      });
+    });
+
+    featureLayer.addListener(
+      "mousemove",
+      (e: google.maps.FeatureMouseEvent) => {
+        if (e.features) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          setHoveredFeatureId(e.features[0].i);
+        }
+      }
+    );
+  }, [
+    clearMarkers,
+    clickedFeatureId,
+    counters,
+    hoveredFeatureId,
+    isLoaded,
+    markers,
+    viewMode,
+  ]);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     mapRef.current = map;
   }, []);
 
-  return isLoaded ? (
-    <GoogleMap
-      mapContainerStyle={{
-        width: "100%",
-        height: "100vh",
-      }}
-      center={{
-        lat: -6.1754,
-        lng: 106.8272,
-      }}
-      zoom={10}
-      onLoad={onLoad}
-      options={{
-        mapId: "c170107c800780e3",
-        disableDefaultUI: true,
-        clickableIcons: false,
-      }}
-      onClick={() => {
-        setSelectedMarker(null);
-        if (onClick) {
-          onClick();
-        }
-      }}
-    >
-      {viewMode === "default" && (
-        <MarkerClustererF>
-          {(clusterer) => (
-            <>
-              {markers.map((university, index) => (
-                <MarkerF
-                  clusterer={clusterer}
-                  key={index}
-                  position={{
-                    lat: university.latitude,
-                    lng: university.longitude,
-                  }}
-                  icon={icons[university.match_type]}
-                  onClick={() => setSelectedMarker(university)}
-                />
-              ))}
-              {selectedMarker && (
-                <InfoWindowF
-                  options={{
-                    pixelOffset: new window.google.maps.Size(0, -20),
-                  }}
-                  position={{
-                    lat: selectedMarker.latitude,
-                    lng: selectedMarker.longitude,
-                  }}
-                  onCloseClick={() => setSelectedMarker(null)}
-                >
-                  <InfoCard university={selectedMarker} />
-                </InfoWindowF>
-              )}
-            </>
-          )}
-        </MarkerClustererF>
-      )}
-    </GoogleMap>
-  ) : (
-    <>Loading</>
-  );
+  const infoUniversity = useMemo(() => {
+    return (
+      selectedMarker && (
+        <InfoWindowF
+          options={{
+            pixelOffset: new window.google.maps.Size(0, -20),
+          }}
+          position={{
+            lat: selectedMarker.latitude,
+            lng: selectedMarker.longitude,
+          }}
+          onCloseClick={() => setSelectedMarker(null)}
+        >
+          <InfoCard university={selectedMarker} />
+        </InfoWindowF>
+      )
+    );
+  }, [selectedMarker]);
+
+  useEffect(() => {
+    if (isLoaded && mapRef.current && viewMode === "default") {
+      const map = mapRef.current;
+      clearMarkers();
+
+      markers.forEach((marker) => {
+        const newMarker = new google.maps.Marker({
+          position: {
+            lat: marker.latitude,
+            lng: marker.longitude,
+          },
+          map: map,
+          icon: icons[marker.match_type],
+        });
+        newMarker.addListener("click", () => setSelectedMarker(marker));
+        markerRef.current.push(newMarker);
+      });
+    }
+  }, [markers, isLoaded, clearMarkers, viewMode]);
+
+  const map = useMemo(() => {
+    return (
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={center}
+        zoom={10}
+        onLoad={onLoad}
+        options={options}
+        onClick={() => {
+          setSelectedMarker(null);
+          setClickedFeatureId("");
+          if (onClick) {
+            onClick();
+          }
+        }}
+        onMouseMove={() => {
+          setHoveredFeatureId("");
+        }}
+      >
+        {infoUniversity}
+      </GoogleMap>
+    );
+  }, [infoUniversity, onClick, onLoad]);
+
+  return isLoaded ? map : <>Loading</>;
 }

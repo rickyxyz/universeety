@@ -74,7 +74,7 @@ export const provinces: Record<ProvinceName, string> = {
 export type IconName = "name" | "address" | "course";
 
 export const icons: Record<IconName, string> = {
-  name: "/building.svg",
-  address: "/location.svg",
-  course: "/book.svg",
+  name: "/building.png",
+  address: "/location.png",
+  course: "/book.png",
 };

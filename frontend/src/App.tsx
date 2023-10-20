@@ -88,6 +88,7 @@ function App() {
             onChange={handleInputChange}
             className="search__input"
             value={query}
+            autoFocus
           />
           {query.length > 0 && (
             <span
