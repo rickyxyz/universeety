@@ -5,6 +5,10 @@ import {
   Libraries,
   InfoWindowF,
 } from "@react-google-maps/api";
+import {
+  MarkerClusterer,
+  SuperClusterAlgorithm,
+} from "@googlemaps/markerclusterer";
 import { FilterType, UniversityType } from "./Types";
 import { InfoCard } from "./components/InfoCard";
 import { provinces, ProvinceName, icons } from "./mappings";
@@ -23,6 +27,13 @@ interface CounterType {
   max: number;
 }
 
+interface clickedFeatureDataType {
+  latLng: google.maps.LatLng;
+  name: string;
+  count: number;
+  place_id: string;
+}
+
 const libraries: Libraries = ["places"];
 
 function hslToHex(h: number, s: number, l: number) {
@@ -38,19 +49,26 @@ function hslToHex(h: number, s: number, l: number) {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-function heatMapColorforValue(value: number) {
-  const h = (1 - value) * 120;
+function heatMapColorforValue(value: number, max: number) {
+  const scaledValue = Math.log(value + 1) / Math.log(max + 1);
+  const h = (1 - scaledValue) * 100;
   const s = 100;
   const l = 60;
   return hslToHex(h, s, l);
 }
 
-function featureStyle(count: number, clicked = false, hovered = false) {
+function featureStyle(
+  count: number,
+  max: number,
+  clicked = false,
+  hovered = false
+) {
   const featureStyleOptions: google.maps.FeatureStyleOptions = {
-    strokeColor: clicked || hovered ? heatMapColorforValue(count) : "#0F0F0F",
+    strokeColor:
+      clicked || hovered ? heatMapColorforValue(count, max) : "#0F0F0F",
     strokeOpacity: 0.9,
     strokeWeight: clicked ? 1.5 : 0.5,
-    fillColor: heatMapColorforValue(count),
+    fillColor: count === 0 ? "#DFDFDF" : heatMapColorforValue(count, max),
     fillOpacity: clicked || hovered ? 0.6 : 0.4,
   };
   return featureStyleOptions;
@@ -83,6 +101,7 @@ export default function Map({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: libraries,
   });
+  const clustererRef = useRef<MarkerClusterer>();
   const mapRef = useRef<google.maps.Map | null>();
   const markerRef = useRef<google.maps.Marker[]>([]);
   const markers = useMemo(() => {
@@ -97,9 +116,13 @@ export default function Map({
     null
   );
   const [clickedFeatureId, setClickedFeatureId] = useState("");
+  const [clickedFeatureData, setClickedFeatureData] =
+    useState<clickedFeatureDataType | null>(null);
+  const [isInfoWindowOpen, setIsInfoWindowOpen] = useState(false);
   const [hoveredFeatureId, setHoveredFeatureId] = useState("");
+
   const counters = useMemo(() => {
-    const counter: CounterType = {
+    const counters: CounterType = {
       values: Object.keys(provinces).reduce(
         (cnt: Record<string, number>, key) => {
           cnt[key] = 0;
@@ -112,16 +135,15 @@ export default function Map({
     };
 
     if (!isLoaded || !mapRef.current) {
-      return counter;
+      return counters;
     }
 
     markers.forEach((marker) => {
-      counter.values[marker.province] += 1;
+      counters.values[marker.province] += 1;
     });
-    counter.max = Math.max(...(Object.values(counter.values) as number[]));
-    counter.min = Math.min(...(Object.values(counter.values) as number[]));
+    counters.max = Math.max(...(Object.values(counters.values) as number[]));
 
-    return counter;
+    return counters;
   }, [isLoaded, markers]);
 
   const clearMarkers = useCallback(() => {
@@ -144,6 +166,7 @@ export default function Map({
     }
 
     clearMarkers();
+    if (clustererRef.current) clustererRef.current.clearMarkers();
     const provinceId = Object.values(provinces);
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -154,7 +177,8 @@ export default function Map({
         const provinceName = getKeyByValue(provinces, placeId) as ProvinceName;
         const count = counters.values[provinceName];
         return featureStyle(
-          (count - counters.min) / (counters.max - counters.min),
+          count,
+          counters.max,
           clickedFeatureId === placeId,
           hoveredFeatureId === placeId
         );
@@ -162,6 +186,18 @@ export default function Map({
     };
 
     featureLayer.addListener("click", (e: google.maps.FeatureMouseEvent) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      const place_id: string = e.features[0].i;
+      setClickedFeatureData({
+        latLng: e.latLng as google.maps.LatLng,
+        place_id: place_id,
+        name: getKeyByValue(provinces, place_id) as string,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        count: counters.values[getKeyByValue(provinces, place_id)],
+      });
+      setIsInfoWindowOpen(true);
       setClickedFeatureId((prev) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
@@ -172,10 +208,11 @@ export default function Map({
     featureLayer.addListener(
       "mousemove",
       (e: google.maps.FeatureMouseEvent) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        const place_id: string = e.features[0].i;
         if (e.features) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          setHoveredFeatureId(e.features[0].i);
+          setHoveredFeatureId(place_id);
         }
       }
     );
@@ -212,24 +249,48 @@ export default function Map({
     );
   }, [selectedMarker]);
 
-  useEffect(() => {
-    if (isLoaded && mapRef.current && viewMode === "default") {
-      const map = mapRef.current;
-      clearMarkers();
-
-      markers.forEach((marker) => {
-        const newMarker = new google.maps.Marker({
-          position: {
-            lat: marker.latitude,
-            lng: marker.longitude,
-          },
-          map: map,
-          icon: icons[marker.match_type],
-        });
-        newMarker.addListener("click", () => setSelectedMarker(marker));
-        markerRef.current.push(newMarker);
-      });
+  const infoRegion = useMemo(() => {
+    if (isInfoWindowOpen && clickedFeatureData) {
+      return (
+        <InfoWindowF
+          position={clickedFeatureData.latLng}
+          onCloseClick={() => setIsInfoWindowOpen(false)}
+        >
+          <div>
+            <h4>{clickedFeatureData.name}</h4>
+            <p>University count matching: {clickedFeatureData.count}</p>
+          </div>
+        </InfoWindowF>
+      );
     }
+    return null;
+  }, [clickedFeatureData, isInfoWindowOpen]);
+
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current || viewMode !== "default") return;
+    if (clustererRef.current) clustererRef.current.clearMarkers();
+    const map = mapRef.current;
+    clearMarkers();
+
+    markers.forEach((marker) => {
+      const newMarker = new google.maps.Marker({
+        position: {
+          lat: marker.latitude,
+          lng: marker.longitude,
+        },
+        map: map,
+        icon: icons[marker.match_type],
+      });
+      newMarker.addListener("click", () => setSelectedMarker(marker));
+      markerRef.current.push(newMarker);
+    });
+
+    const clusterer = new MarkerClusterer({
+      markers: markerRef.current,
+      map,
+      algorithm: new SuperClusterAlgorithm({ radius: 200 }),
+    });
+    clustererRef.current = clusterer;
   }, [markers, isLoaded, clearMarkers, viewMode]);
 
   const map = useMemo(() => {
@@ -243,6 +304,7 @@ export default function Map({
         onClick={() => {
           setSelectedMarker(null);
           setClickedFeatureId("");
+          setClickedFeatureData(null);
           if (onClick) {
             onClick();
           }
@@ -252,9 +314,10 @@ export default function Map({
         }}
       >
         {infoUniversity}
+        {infoRegion}
       </GoogleMap>
     );
-  }, [infoUniversity, onClick, onLoad]);
+  }, [infoRegion, infoUniversity, onClick, onLoad]);
 
   return isLoaded ? map : <>Loading</>;
 }
