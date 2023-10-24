@@ -2,13 +2,17 @@
     --color-black: #111111;
     --color-white: #FFFFFF;
     --color-gray: #CDCDCD;
-    --color-light-gray: #F3F3F3;
+    --color-light-gray: #eae9ec;
     --color-primary: #5AC5E6;
     --color-secondary: #83DEFF;
     --color-accent: #419CBD;
     --color-test: hsl(1, 1, 1);
+    --shadow-normal: 0 2px 5px 1px rgba(64, 60, 67, 0.277);
     font-family: 'Montserrat', Arial, Helvetica, sans-serif;
     font-size: 14px;
+}
+html {
+    overflow-x: hidden;
 }
 html, body, #root, #root>div {
     color: var(--color-black);
@@ -46,4 +50,8 @@ q:before, q:after {
 table {
     border-collapse: collapse;
     border-spacing: 0;
+}
+h1,h2,h3,h4,h5,h6,input {
+    margin: 0;
+    padding: 0;
 }

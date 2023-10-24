@@ -11,3 +11,10 @@ export function getKeyByValue<
     (key) => object[key] === value
   );
 }
+
+export function addHttpsToURL(url: string) {
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url.trim();
+  }
+  return `https://${url.trim()}`;
+}

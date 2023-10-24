@@ -1,4 +1,5 @@
 import { UniversityType } from "../Types";
+import { addHttpsToURL } from "../utils";
 import "./InfoCard.css";
 
 interface InfoCardPropType {
@@ -6,17 +7,10 @@ interface InfoCardPropType {
   className?: string;
 }
 
-function addHttpsToURL(url: string) {
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    return url.trim();
-  }
-  return `https://${url.trim()}`;
-}
-
 export function InfoCard({ university, className }: InfoCardPropType) {
   return (
     <div className={className}>
-      <table>
+      <table className="infocard_table">
         <tbody>
           <tr>
             <th>Name</th>
@@ -34,12 +28,10 @@ export function InfoCard({ university, className }: InfoCardPropType) {
             <th>Address</th>
             <td>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  university.name
-                )}`}
+                href={`https://www.google.com/maps/place/?q=place_id:${university.place_id}`}
                 target="_new"
               >
-                {university.address}
+                {university.address || "-"}
               </a>
             </td>
           </tr>
@@ -50,11 +42,12 @@ export function InfoCard({ university, className }: InfoCardPropType) {
           <tr>
             <th>Website</th>
             <td>
-              {university.website && (
+              {(university.website && (
                 <a href={addHttpsToURL(university.website)} target="_blank">
                   {university.website}
                 </a>
-              )}
+              )) ||
+                "-"}
             </td>
           </tr>
         </tbody>

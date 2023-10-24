@@ -1,21 +1,21 @@
-table {
+.infocard_table {
     border-collapse: collapse;
     width: 100%;
     margin: 0;
     padding: 0;
 }
 
-table th, td {
+.infocard_table th, td {
     border: 1px solid #ccc;
     vertical-align: top;
     padding: 8px;
     text-align: left;
 }
 
-th {
+.infocard_table th {
     width: 100px;
 }
 
-td {
+.infocard_table td {
     width: 300px;
 }

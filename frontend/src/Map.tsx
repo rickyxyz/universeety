@@ -9,15 +9,15 @@ import {
   MarkerClusterer,
   SuperClusterAlgorithm,
 } from "@googlemaps/markerclusterer";
-import { FilterType, UniversityType } from "./Types";
+import { UniversityType } from "./Types";
 import { InfoCard } from "./components/InfoCard";
 import { provinces, ProvinceName, icons } from "./mappings";
 import { getKeyByValue } from "./utils";
 
 interface MapPropType {
   universities: UniversityType[];
-  filters: FilterType;
   viewMode: string;
+  containerStyle: React.CSSProperties;
   onClick?: () => void;
 }
 
@@ -74,11 +74,6 @@ function featureStyle(
   return featureStyleOptions;
 }
 
-const mapContainerStyle = {
-  width: "100%",
-  height: "100vh",
-};
-
 const center = {
   lat: -6.1754,
   lng: 106.8272,
@@ -93,8 +88,8 @@ const options = {
 
 export default function Map({
   universities,
-  filters,
   viewMode,
+  containerStyle,
   onClick,
 }: MapPropType) {
   const { isLoaded } = useLoadScript({
@@ -104,14 +99,6 @@ export default function Map({
   const clustererRef = useRef<MarkerClusterer>();
   const mapRef = useRef<google.maps.Map | null>();
   const markerRef = useRef<google.maps.Marker[]>([]);
-  const markers = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
-    const visibleFilter = Object.keys(filters).filter((key) => filters[key]);
-    return universities.filter((university) =>
-      visibleFilter.includes(university.match_type)
-    );
-  }, [filters, universities]);
   const [selectedMarker, setSelectedMarker] = useState<UniversityType | null>(
     null
   );
@@ -138,13 +125,13 @@ export default function Map({
       return counters;
     }
 
-    markers.forEach((marker) => {
-      counters.values[marker.province] += 1;
+    universities.forEach((university) => {
+      counters.values[university.province] += 1;
     });
     counters.max = Math.max(...(Object.values(counters.values) as number[]));
 
     return counters;
-  }, [isLoaded, markers]);
+  }, [isLoaded, universities]);
 
   const clearMarkers = useCallback(() => {
     while (markerRef.current.length) {
@@ -222,7 +209,7 @@ export default function Map({
     counters,
     hoveredFeatureId,
     isLoaded,
-    markers,
+    universities,
     viewMode,
   ]);
 
@@ -272,16 +259,16 @@ export default function Map({
     const map = mapRef.current;
     clearMarkers();
 
-    markers.forEach((marker) => {
+    universities.forEach((university) => {
       const newMarker = new google.maps.Marker({
         position: {
-          lat: marker.latitude,
-          lng: marker.longitude,
+          lat: university.latitude,
+          lng: university.longitude,
         },
         map: map,
-        icon: icons[marker.match_type],
+        icon: icons[university.match_type],
       });
-      newMarker.addListener("click", () => setSelectedMarker(marker));
+      newMarker.addListener("click", () => setSelectedMarker(university));
       markerRef.current.push(newMarker);
     });
 
@@ -291,12 +278,12 @@ export default function Map({
       algorithm: new SuperClusterAlgorithm({ radius: 200 }),
     });
     clustererRef.current = clusterer;
-  }, [markers, isLoaded, clearMarkers, viewMode]);
+  }, [isLoaded, clearMarkers, viewMode, universities]);
 
   const map = useMemo(() => {
     return (
       <GoogleMap
-        mapContainerStyle={mapContainerStyle}
+        mapContainerStyle={containerStyle}
         center={center}
         zoom={10}
         onLoad={onLoad}
@@ -317,7 +304,7 @@ export default function Map({
         {infoRegion}
       </GoogleMap>
     );
-  }, [infoRegion, infoUniversity, onClick, onLoad]);
+  }, [containerStyle, infoRegion, infoUniversity, onClick, onLoad]);
 
   return isLoaded ? map : <>Loading</>;
 }
