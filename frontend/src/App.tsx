@@ -25,141 +25,12 @@ type APISearchResponse = {
   universities: UniversityType[];
 };
 
-const testData: APISearchResponse = {
-  name_match: 5,
-  address_match: 2,
-  course_match: 0,
-  universities: [
-    {
-      id: 268,
-      match_type: "name",
-      code: "031072",
-      name: "Universitas Indonesia Maju",
-      abbreviation: "UIMA",
-      accreditation: "B",
-      program_count: 19,
-      website: "www.uima.ac.id",
-      phone: "02178894045",
-      address:
-        "Jl. Harapan No.50, RT.2/RW.7, Lenteng Agung, Kec. Jagakarsa, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12610, Indonesia",
-      latitude: -6.3343444,
-      longitude: 106.83788,
-      province: "Jakarta",
-      place_id: "ChIJMxqufMntaS4Rf1EBhmGqVIY",
-    },
-    {
-      id: 269,
-      match_type: "name",
-      code: "041093",
-      name: "Universitas Indonesia Membangun",
-      abbreviation: "Universitas Inaba",
-      accreditation: "B",
-      program_count: 7,
-      website: "www.inaba.ac.id",
-      phone: "0227563919",
-      address:
-        "Jl. Soekarno Hatta No.448, Batununggal, Kec. Bandung Kidul, Kota Bandung, Jawa Barat 40266, Indonesia",
-      latitude: -6.9499226,
-      longitude: 107.622856,
-      province: "West Java",
-      place_id: "ChIJfUmgll_oaC4RuvUawaRSGJQ",
-    },
-    {
-      id: 1724,
-      match_type: "address",
-      code: "095014",
-      name: "Politeknik Indonesia",
-      abbreviation: "POLINDO",
-      accreditation: "",
-      program_count: 5,
-      website: "www.polindo.ac.id",
-      phone: "",
-      address:
-        "Universitas Indonesia, Jl. Prof. DR. G.A. Siwabessy, Kukusan, Kecamatan Beji, Kota Depok, Jawa Barat 16425, Indonesia",
-      latitude: -6.370776,
-      longitude: 106.82367,
-      province: "West Java",
-      place_id: "ChIJ35u1qxzsaS4RKfN3Rk74tCg",
-    },
-    {
-      id: 1854,
-      match_type: "address",
-      code: "005002",
-      name: "Politeknik Negeri Jakarta",
-      abbreviation: "PNJ",
-      accreditation: "",
-      program_count: 53,
-      website: "www.pnj.ac.id",
-      phone: "0217270036",
-      address:
-        "Kota Depok - Prov. Jawa Barat - Indonesia Kampus Baru Universitas Indonesia",
-      latitude: -6.370776,
-      longitude: 106.82367,
-      province: "West Java",
-      place_id: "ChIJ35u1qxzsaS4RKfN3Rk74tCg",
-    },
-    {
-      id: 5187,
-      match_type: "name",
-      code: "001002",
-      name: "Universitas Indonesia",
-      abbreviation: "UI",
-      accreditation: "Unggul",
-      program_count: 293,
-      website: "www.ui.ac.id",
-      phone: "0217270020",
-      address:
-        "Kota Jakarta Pusat - Prov. D.K.I. Jakarta - Indonesia Jalan Salemba Raya 4 ",
-      latitude: -6.360623,
-      longitude: 106.82723,
-      province: "West Java",
-      place_id: "ChIJhYtOgBrsaS4RB-p8l-GAv9c",
-    },
-    {
-      id: 5188,
-      match_type: "name",
-      code: "041095",
-      name: "Universitas Indonesia Mandiri",
-      abbreviation: "UIM",
-      accreditation: "",
-      program_count: 9,
-      website: "uimandiri.ac.id",
-      phone: "02189468034",
-      address:
-        "M2RM+J5C, Jl. Teratai Putih, RT.001/RW.006, Cimuning, Kec. Mustika Jaya, Kota Bks, Jawa Barat 17310, Indonesia",
-      latitude: -6.3084483,
-      longitude: 107.032906,
-      province: "West Java",
-      place_id: "ChIJ____m8GRaS4RRkhblfrxCEI",
-    },
-    {
-      id: 5189,
-      match_type: "name",
-      code: "091034",
-      name: "Universitas Indonesia Timur",
-      abbreviation: "UIT",
-      accreditation: "Baik Sekali",
-      program_count: 22,
-      website: "www.uit.ac.id",
-      phone: "0411831555",
-      address:
-        "Kec. Rappocini - Kota Makassar - Prov. Sulawesi Selatan Jl Rappocini Raya No 171-173 ",
-      latitude: -5.16969,
-      longitude: 119.443054,
-      province: "South Sulawesi",
-      place_id: "ChIJYbx2kfLivi0RCibF6TwHLMQ",
-    },
-  ],
-};
-
 const emptyData: APISearchResponse = {
   name_match: 0,
   address_match: 0,
   course_match: 0,
   universities: [],
 };
-
-const testMode = true;
 
 function App() {
   const [isListView, setIsListView] = useState(false);
@@ -219,23 +90,6 @@ function App() {
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (testMode) {
-        setIsLanding(false);
-        setResults(testData);
-        const keys = [
-          ...new Set(
-            testData.universities.map((university) => university.accreditation)
-          ),
-        ];
-        const acc = keys.reduce((prev, curr) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          prev[curr] = false;
-          return prev;
-        }, {});
-        setVisibleAccreditation(acc);
-        return;
-      }
       if (query.length < 1) return;
       setIsLanding(false);
       axios.get("/api/search/", { params: { q: query } }).then(async (res) => {
