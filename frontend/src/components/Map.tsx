@@ -9,10 +9,10 @@ import {
   MarkerClusterer,
   SuperClusterAlgorithm,
 } from "@googlemaps/markerclusterer";
-import { UniversityType } from "./Types";
-import { InfoCard } from "./components/InfoCard";
-import { provinces, ProvinceName, icons } from "./mappings";
-import { getKeyByValue } from "./utils";
+import { InfoCard } from "./InfoCard";
+import { provinces, icons } from "../mappings";
+import { getKeyByValue } from "../utils";
+import { ProvinceName, UniversityType } from "../Types";
 
 interface MapPropType {
   universities: UniversityType[];

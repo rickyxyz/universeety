@@ -1,38 +1,4 @@
-export type ProvinceName =
-  | "Aceh"
-  | "North Sumatra"
-  | "South Sumatra"
-  | "West Sumatra"
-  | "Bengkulu"
-  | "Riau"
-  | "Riau Islands"
-  | "Jambi"
-  | "Lampung"
-  | "Bangka Belitung Islands"
-  | "West Kalimantan"
-  | "East Kalimantan"
-  | "South Kalimantan"
-  | "Central Kalimantan"
-  | "North Kalimantan"
-  | "Banten"
-  | "Jakarta"
-  | "West Java"
-  | "Central Java"
-  | "Special Region of Yogyakarta"
-  | "East Java"
-  | "Bali"
-  | "East Nusa Tenggara"
-  | "West Nusa Tenggara"
-  | "Gorontalo"
-  | "West Sulawesi"
-  | "Central Sulawesi"
-  | "South East Sulawesi"
-  | "North Sulawesi"
-  | "South Sulawesi"
-  | "North Maluku"
-  | "Maluku"
-  | "West Papua"
-  | "Papua";
+import { IconName, ProvinceName } from "./Types";
 
 export const provinces: Record<ProvinceName, string> = {
   Aceh: "ChIJvcR8UN-bOTARYMogsoCdAwE",
@@ -70,8 +36,6 @@ export const provinces: Record<ProvinceName, string> = {
   "West Papua": "ChIJLQviub0KVC0RYsvHxfjBSVM",
   Papua: "ChIJc5L_qgQsO2gRc-bvXpxOqes",
 };
-
-export type IconName = "name" | "address" | "course";
 
 export const icons: Record<IconName, string> = {
   name: "/building.png",

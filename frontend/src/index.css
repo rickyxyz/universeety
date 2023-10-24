@@ -16,7 +16,6 @@ html {
 }
 html, body, #root, #root>div {
     color: var(--color-black);
-    /* height: 100% */
 }
 html, body, div, span {
     margin: 0;
