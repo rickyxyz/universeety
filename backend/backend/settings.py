@@ -30,14 +30,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = DJANGO_SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "frontend", "backend", "127.0.0.1"]
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = True
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "frontend",
+    "backend",
+    "127.0.0.1",
+    "universeety-be-63ls764qfq-et.a.run.app",
+    "https://universeety-fe-63ls764qfq-as.a.run.app",
+]
 
 CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
     "http://frontend:3000",
+    "https://universeety-fe-63ls764qfq-as.a.run.app",
 ]
 
 # Application definition
@@ -141,3 +153,5 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
