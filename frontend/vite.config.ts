@@ -14,4 +14,15 @@ export default {
       },
     },
   },
+  preview: {
+    host: true,
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: "https://universeety-be-63ls764qfq-et.a.run.app",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 };

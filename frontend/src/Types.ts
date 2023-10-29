@@ -1,8 +1,8 @@
 export type ProvinceName =
   | "Aceh"
-  | "North Sumatra"
-  | "South Sumatra"
-  | "West Sumatra"
+  | "North Sumatera"
+  | "South Sumatera"
+  | "West Sumatera"
   | "Bengkulu"
   | "Riau"
   | "Riau Islands"

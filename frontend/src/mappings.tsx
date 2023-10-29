@@ -2,9 +2,9 @@ import { IconName, ProvinceName } from "./Types";
 
 export const provinces: Record<ProvinceName, string> = {
   Aceh: "ChIJvcR8UN-bOTARYMogsoCdAwE",
-  "North Sumatra": "ChIJhxxy61r51y8RC8vXCYE-p6w",
-  "South Sumatra": "ChIJLeo1PXWLEC4Rz8QB4gGB_Bg",
-  "West Sumatra": "ChIJRUJ08Ey51C8RVTvVdblRsXA",
+  "North Sumatera": "ChIJhxxy61r51y8RC8vXCYE-p6w",
+  "South Sumatera": "ChIJLeo1PXWLEC4Rz8QB4gGB_Bg",
+  "West Sumatera": "ChIJRUJ08Ey51C8RVTvVdblRsXA",
   Bengkulu: "ChIJeZLjNx6wNi4R4bGjxGX7HFE",
   Riau: "ChIJdz6xGVhXJy4Rsb21bJQCb4M",
   "Riau Islands": "ChIJAQuH1E1l2TERvCSFiXW1RnI",

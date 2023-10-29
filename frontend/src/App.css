@@ -425,3 +425,21 @@
     align-items: center;
     justify-content: center;
 }
+
+.spinner {
+    color: var(--color-accent);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 7px 8px 4px 8px;
+    animation: spin-anim 1.2s linear infinite;
+}
+
+@keyframes spin-anim {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -1,9 +1,12 @@
 FROM node:current-alpine3.18
 
+EXPOSE 3000:3000
+
 WORKDIR /frontend
 
 COPY . .
 
 RUN npm install
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "preview"]

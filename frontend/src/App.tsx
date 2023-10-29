@@ -1,5 +1,5 @@
 import axios from "axios";
-import "./app.css";
+import "./App.css";
 import { useCallback, useMemo, useState } from "react";
 import { AccreditationFilter, FilterType, UniversityType } from "./Types";
 import { FaXmark } from "react-icons/fa6";
@@ -14,6 +14,7 @@ import {
   FaSortAmountDown,
   FaSortAmountUpAlt,
 } from "react-icons/fa";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import Map from "./components/Map";
 import Badge from "./components/Badge";
 import { addHttpsToURL } from "./utils";
@@ -33,6 +34,7 @@ const emptyData: APISearchResponse = {
 };
 
 function App() {
+  const [isLoading, setIsLoading] = useState(false);
   const [isListView, setIsListView] = useState(false);
   const [viewMode, setViewMode] = useState("default");
   const [showViewControl, setShowViewControl] = useState(false);
@@ -90,25 +92,31 @@ function App() {
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
+      setIsLoading(true);
       if (query.length < 1) return;
       setIsLanding(false);
-      axios.get("/api/search/", { params: { q: query } }).then(async (res) => {
-        setResults(res.data);
-        const keys = [
-          ...new Set(
-            res.data.universities.map(
-              (university: UniversityType) => university.accreditation
-            )
-          ),
-        ];
-        const acc = keys.reduce((prev, curr) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          prev[curr] = false;
-          return prev;
-        }, {}) as AccreditationFilter;
-        setVisibleAccreditation(acc);
-      });
+      axios
+        .get("/api/search/", { params: { q: query } })
+        .then(async (res) => {
+          setResults(res.data);
+          const keys = [
+            ...new Set(
+              res.data.universities.map(
+                (university: UniversityType) => university.accreditation
+              )
+            ),
+          ];
+          const acc = keys.reduce((prev, curr) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            prev[curr] = false;
+            return prev;
+          }, {}) as AccreditationFilter;
+          setVisibleAccreditation(acc);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     },
     [query]
   );
@@ -160,9 +168,15 @@ function App() {
             </span>
           )}
           <span className="search__separator"></span>
-          <button type="submit" className="search__button">
-            <FaSearch size={"1.3rem"} strokeWidth={"3"} />
-          </button>
+          {isLoading ? (
+            <span className="spinner">
+              <AiOutlineLoading3Quarters size={"1.3rem"} strokeWidth={"5"} />
+            </span>
+          ) : (
+            <button type="submit" className="search__button">
+              <FaSearch size={"1.3rem"} strokeWidth={"3"} />
+            </button>
+          )}
         </form>
         {!isLanding && (
           <div
@@ -176,7 +190,7 @@ function App() {
         )}
       </div>
     ),
-    [handleSubmit, isLanding, isListView, query]
+    [handleSubmit, isLanding, isListView, isLoading, query]
   );
 
   const stopper = useCallback((event: React.MouseEvent<HTMLElement>) => {
