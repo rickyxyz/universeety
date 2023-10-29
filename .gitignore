@@ -1,4 +1,5 @@
 **/.env
+**/.env.*
 **/.vscode/*
 **/!.vscode/extensions.json
 **/.idea
@@ -14,6 +15,7 @@ scrapper/scrapper-env/
 scrapper/data_cache/
 
 backend/backend-env/
+backend/static/
 
 frontend/# Logs
 frontend/logs

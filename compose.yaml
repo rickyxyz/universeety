@@ -2,8 +2,6 @@ version: '3'
 services:
   db:
     profiles:
-      - populate-db
-      - backend-only
       - db-only
       - website
     container_name: pg_container
@@ -34,7 +32,6 @@ services:
         condition: service_healthy
         restart: true
     profiles:
-      - backend-only
       - db-only
     container_name: pgadmin4_container
     image: dpage/pgadmin4:7.7
@@ -46,35 +43,15 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-  scrapper:
-    container_name: scrapper
-    profiles:
-      - populate-db
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-    build: ./scrapper
-    environment:
-      POSTGRES_HOST: pg_container
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - scrapper_data:/scrapper/data_cache
-
   backend:
     container_name: backend
     profiles:
-      - backend-only
       - website
     depends_on:
       db:
         condition: service_healthy
         restart: true
     build: ./backend
-    ports:
-      - "8000:8000"
     environment:
       POSTGRES_HOST: pg_container
       POSTGRES_USER: ${POSTGRES_USER}
@@ -102,4 +79,3 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
-  scrapper_data:
