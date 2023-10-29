@@ -1,12 +1,73 @@
 import csv, os
 import psycopg2
-import googlemaps
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST") or "localhost"
 POSTGRES_USER = os.getenv("POSTGRES_USER") or "root"
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD") or "root"
 POSTGRES_DB = os.getenv("POSTGRES_DB") or "test_db"
 GMAPS_KEY = os.getenv("GMAPS_KEY")
+
+province_name = {
+    "": "",
+    "Aceh": "Aceh",
+    "North Sumatra": "North Sumatera",
+    "South Sumatra": "South Sumatera",
+    "West Sumatra": "West Sumatera",
+    "Bengkulu": "Bengkulu",
+    "Riau": "Riau",
+    "Riau Islands": "Riau Islands",
+    "Jambi": "Jambi",
+    "Lampung": "Lampung",
+    "Bangka Belitung Islands": "Bangka Belitung Islands",
+    "West Kalimantan": "West Kalimantan",
+    "East Kalimantan": "East Kalimantan",
+    "South Kalimantan": "South Kalimantan",
+    "Central Kalimantan": "Central Kalimantan",
+    "North Kalimantan": "North Kalimantan",
+    "Banten": "Banten",
+    "Jakarta": "Jakarta",
+    "West Java": "West Java",
+    "Central Java": "Central Java",
+    "Special Region of Yogyakarta": "Special Region of Yogyakarta",
+    "East Java": "East Java",
+    "Bali": "Bali",
+    "East Nusa Tenggara": "East Nusa Tenggara",
+    "West Nusa Tenggara": "West Nusa Tenggara",
+    "Gorontalo": "Gorontalo",
+    "West Sulawesi": "West Sulawesi",
+    "Central Sulawesi": "Central Sulawesi",
+    "South East Sulawesi": "South East Sulawesi",
+    "North Sulawesi": "North Sulawesi",
+    "South Sulawesi": "South Sulawesi",
+    "North Maluku": "North Maluku",
+    "Maluku": "Maluku",
+    "West Papua": "West Papua",
+    "Papua": "Papua",
+    "Sumatera Utara": "North Sumatera",
+    "Sumatera Selatan": "South Sumatera",
+    "Sumatera Barat": "West Sumatera",
+    "Kepulauan Riau": "Riau Islands",
+    "Kepulauan Bangka Belitung": "Bangka Belitung Islands",
+    "Kalimantan Barat": "West Kalimantan",
+    "Kalimantan Timur": "East Kalimantan",
+    "Kalimantan Selatan": "South Kalimantan",
+    "Kalimantan Tengah": "Central Kalimantan",
+    "Kalimantan Utara": "North Kalimantan",
+    "Jawa Barat": "West Java",
+    "Jawa Tengah": "Central Java",
+    "Daerah Khusus Ibukota Jakarta": "Special Region of Yogyakarta",
+    "Daerah Istimewa Yogyakarta": "Special Region of Yogyakarta",
+    "Jawa Timur": "East Java",
+    "Nusa Tenggara Timur": "East Nusa Tenggara",
+    "Nusa Tenggara Barat": "West Nusa Tenggara",
+    "Sulawesi Barat": "West Sulawesi",
+    "Sulawesi Tengah": "Central Sulawesi",
+    "Sulawesi Tenggara": "South East Sulawesi",
+    "Sulawesi Utara": "North Sulawesi",
+    "Sulawesi Selatan": "South Sulawesi",
+    "Maluku Utara": "North Maluku",
+    "Papua Barat": "West Papua",
+}
 
 
 class PostgresPipeline(object):
@@ -19,7 +80,6 @@ class PostgresPipeline(object):
             port="5432",
         )
         self.curr = self.connection.cursor()
-        self.gmaps = googlemaps.Client(key=GMAPS_KEY)
 
     def store_data(self):
         print("storing data")
@@ -85,9 +145,6 @@ class PostgresPipeline(object):
                         ON DELETE CASCADE
                         NOT VALID
                 );
-
-                ALTER TABLE IF EXISTS public.university_course
-                    OWNER to root;
             """
         )
         self.connection.commit()
@@ -128,7 +185,7 @@ class PostgresPipeline(object):
                         row.get("address", ""),
                         row.get("latitude", None),
                         row.get("longitude", None),
-                        row.get("province", ""),
+                        province_name[row.get("province", "")],
                         row.get("place_id", ""),
                     )
                 )
